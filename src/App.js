@@ -115,24 +115,81 @@ function SliderRow({ label, val, onChange, min, max, isEx }) {
 }
 
 function S2Input({ onPredict }) {
-  const [age, setAge] = useState(22);
-  const [sleep, setSleep] = useState(6);
+  const [age, setAge]       = useState(22);
+  const [sleep, setSleep]   = useState(6);
   const [screen, setScreen] = useState(7);
-  const [ex, setEx] = useState(1);
+  const [ex, setEx]         = useState(1);
+  const [err, setErr]       = useState('');
+
+  const validate = () => {
+    if (!age || age < 5  || age > 90)   { setErr('AGE MUST BE 5 – 90');          return false; }
+    if (!sleep || sleep < 3 || sleep > 12) { setErr('SLEEP MUST BE 3 – 12 HRS'); return false; }
+    if (screen < 0 || screen > 18)      { setErr('SCREEN TIME MUST BE 0 – 18');  return false; }
+    setErr(''); return true;
+  };
+
+  const fillDemo = () => { setAge(22); setSleep(6); setScreen(7); setEx(1); setErr(''); };
+
   return (
     <div className="scene hidden" id="s2">
       <div className="orb-title a1">BIOMETRIC DATA INPUT</div>
-      <div className="main-text a2" style={{fontSize:'clamp(14px,3vw,24px)',marginBottom:14}}>ENTER YOUR PARAMETERS</div>
+      <div className="main-text a2" style={{fontSize:'clamp(13px,2.8vw,22px)',marginBottom:12}}>
+        ENTER YOUR PARAMETERS
+      </div>
       <div className="input-panel a3">
-        <SliderRow label="Age (years)"     val={age}    onChange={setAge}    min={5}  max={90}/>
-        <SliderRow label="Sleep hrs/night" val={sleep}  onChange={setSleep}  min={3}  max={12}/>
-        <SliderRow label="Screen hrs/day"  val={screen} onChange={setScreen} min={0}  max={18}/>
-        <SliderRow label="Exercise level"  val={ex}     onChange={setEx}     min={0}  max={3}  isEx/>
+
+        <TypeField label="Age" hint="Your current age (5 – 90)"
+          value={age} onChange={setAge} min={5} max={90} unit="YEARS" />
+
+        <TypeField label="Sleep" hint="Hours per night (3 – 12)"
+          value={sleep} onChange={setSleep} min={3} max={12} unit="HRS/NIGHT" color="orange" />
+
+        <TypeField label="Screen Time" hint="Hours on devices per day (0 – 18)"
+          value={screen} onChange={setScreen} min={0} max={18} unit="HRS/DAY" color="red" />
+
+        <div className="field-row">
+          <div className="field-left">
+            <div className="field-label">Exercise Level</div>
+            <div className="field-hint">Select your activity level</div>
+          </div>
+          <div>
+            <select className="type-select" value={ex} onChange={e=>setEx(Number(e.target.value))}>
+              <option value={0}>NONE</option>
+              <option value={1}>LOW</option>
+              <option value={2}>MID</option>
+              <option value={3}>HIGH</option>
+            </select>
+            <div className="unit-label">LEVEL</div>
+          </div>
+        </div>
+
         <div className="demo-box">
           <div className="demo-label">DEMO PRESET</div>
           <div className="demo-vals">AGE: 22 | SLEEP: 6h | SCREEN: 7h | EXERCISE: LOW</div>
+          <button className="demo-fill-btn" onClick={fillDemo}>[ AUTO-FILL DEMO ]</button>
         </div>
-        <button className="btn" onClick={()=>onPredict(age,sleep,screen,ex)}>[ PREDICT MY FUTURE ]</button>
+
+        {err && <div className="err-msg">{err}</div>}
+        <button className="btn" onClick={() => validate() && onPredict(age, sleep, screen, ex)}>
+          [ PREDICT MY FUTURE ]
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TypeField({ label, hint, value, onChange, min, max, unit, color }) {
+  return (
+    <div className="field-row">
+      <div className="field-left">
+        <div className="field-label">{label}</div>
+        <div className="field-hint">{hint}</div>
+      </div>
+      <div>
+        <input className={`type-input${color ? ' '+color+'-in' : ''}`}
+          type="number" value={value} min={min} max={max}
+          onChange={e => onChange(Number(e.target.value))} />
+        <div className="unit-label">{unit}</div>
       </div>
     </div>
   );
