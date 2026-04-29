@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── Canvas & Overlays ── */
+#bgCanvas {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; z-index: 0; pointer-events: none;
+}
+.grid-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 1; pointer-events: none;
+}
+.vignette {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,0.82) 100%);
+  z-index: 1; pointer-events: none;
+}
+.scan-line {
+  position: fixed; left: 0; width: 100%; height: 1px;
+  background: rgba(0,200,255,0.12); z-index: 3; pointer-events: none;
+  animation: scanH 6s linear infinite;
+}
+@keyframes scanH { from { top: 0 } to { top: 100% } }
+
+/* ── Mute Button ── */
+.mute-btn {
+  position: fixed; top: 14px; right: 14px; z-index: 100;
+  background: rgba(0,200,255,0.07);
+  border: 1px solid rgba(0,200,255,0.22);
+  color: #00c8ff; font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; letter-spacing: 3px; padding: 7px 14px; cursor: pointer;
+  transition: all 0.3s;
+}
+.mute-btn:hover { background: rgba(0,200,255,0.18); }
+
+/* ── Scenes ── */
+.scene {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 10; padding: 20px;
+  transition: opacity 0.7s ease;
+  text-align: center;
+}
+.scene.hidden { opacity: 0; pointer-events: none; }
+.scene.visible { opacity: 1; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+@keyframes rotCW  { from { transform: rotate(0deg)   } to { transform: rotate(360deg)  } }
+@keyframes rotCCW { from { transform: rotate(0deg)   } to { transform: rotate(-360deg) } }
+@keyframes pulse  { 0%,100% { opacity: 1 } 50% { opacity: 0.38 } }
+@keyframes shimmer{ 0%,100% { opacity: 0.5 } 50% { opacity: 1 } }
+@keyframes glitch {
+  0%,94%,100% { transform: translate(0) }
+  96% { transform: translate(-4px, 1px) skew(-1deg) }
+  98% { transform: translate(4px, -1px) skew(1deg) }
+}
+@keyframes zoomReveal { from { transform: scale(0.5); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+.a1 { animation: fadeUp 0.8s ease forwards; }
+.a2 { animation: fadeUp 0.8s ease 0.45s forwards; opacity: 0; }
+.a3 { animation: fadeUp 0.8s ease 0.9s  forwards; opacity: 0; }
+.a4 { animation: fadeUp 0.8s ease 1.35s forwards; opacity: 0; }
+.a5 { animation: fadeUp 0.8s ease 1.8s  forwards; opacity: 0; }
+.pulse-anim { animation: pulse 2s infinite; }
+.zoom-rev   { animation: zoomReveal 0.7s cubic-bezier(0.2,1.2,0.4,1) forwards; }
+
+/* ── Typography ── */
+.orb-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(10px, 1.8vw, 13px);
+  letter-spacing: 5px; color: #00c8ff;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.main-text {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(18px, 4.5vw, 44px);
+  font-weight: 700; line-height: 1.22; letter-spacing: 2px;
+}
+.sub-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(12px, 2.2vw, 16px);
+  letter-spacing: 5px; color: #2a5a6a; margin-top: 10px;
+}
+.mono { font-family: 'Share Tech Mono', monospace; }
+.cyan  { color: #00e5ff; }
+.orange{ color: #ff6b35; }
+.red-c { color: #ff2d55; }
+.glow-cyan { text-shadow: 0 0 24px rgba(0,200,255,0.55); }
+.glow-red  { text-shadow: 0 0 24px rgba(255,45,85,0.55);  }
+
+/* ── Orbital Ring ── */
+.orbital-wrap {
+  position: relative;
+  width: min(250px, 54vw); height: min(250px, 54vw);
+  margin: 14px auto;
+}
+.ring {
+  position: absolute; top: 50%; left: 50%;
+  border-radius: 50%; transform: translate(-50%,-50%);
+  border-style: solid;
+}
+.ring1 { width: 100%; height: 100%; border-width: 1px; border-color: rgba(0,200,255,0.38); animation: rotCW  22s linear infinite; }
+.ring2 { width: 74%;  height: 74%;  border-width: 1px; border-color: rgba(255,107,53,0.38); animation: rotCCW 15s linear infinite; }
+.ring3 { width: 50%;  height: 50%;  border-width: 1px; border-color: rgba(0,229,255,0.55); animation: rotCW   9s linear infinite; }
+.ring-dot {
+  position: absolute; width: 6px; height: 6px;
+  border-radius: 50%; top: -3px; left: 50%; margin-left: -3px;
+}
+.ring1 .ring-dot { background: #00c8ff; box-shadow: 0 0 10px #00c8ff, 0 0 20px #00c8ff; }
+.ring2 .ring-dot { background: #ff6b35; box-shadow: 0 0 10px #ff6b35, 0 0 20px #ff6b35; }
+.ring3 .ring-dot { background: #00e5ff; box-shadow: 0 0 10px #00e5ff; }
+.ring-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); text-align: center;
+}
+.ring-big-num {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(38px, 9vw, 72px);
+  font-weight: 900; color: #fff; line-height: 1;
+  text-shadow: 0 0 40px rgba(0,200,255,0.45);
+}
+.ring-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(8px, 1.4vw, 10px);
+  letter-spacing: 4px; color: #00c8ff; opacity: 0.7;
+}
+.ring-unit {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px; letter-spacing: 3px; color: #2a5a6a; margin-top: 2px;
+}
+
+/* ── Input Form ── */
+.input-panel {
+  width: 100%; max-width: 480px;
+  background: rgba(0,6,16,0.72);
+  border: 1px solid rgba(0,200,255,0.14);
+  padding: 22px 26px;
+}
+.slider-row    { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.slider-header { display: flex; justify-content: space-between; align-items: center; }
+.sl-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 4px; color: #2a5a6a; text-transform: uppercase; }
+.sl-val   { font-family: 'Orbitron', monospace; font-size: 14px; color: #00e5ff; font-weight: 700; }
+
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 2px;
+  background: rgba(0,200,255,0.14); border-radius: 1px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: #00c8ff; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 0 8px #00c8ff;
+}
+
+.demo-box {
+  background: rgba(255,107,53,0.05);
+  border: 1px solid rgba(255,107,53,0.2);
+  padding: 10px 14px; margin: 4px 0 18px;
+}
+.demo-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #ff6b35; }
+.demo-vals  { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #2a5a6a; margin-top: 5px; line-height: 1.9; }
+
+.btn {
+  background: transparent; cursor: pointer; transition: all 0.3s;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(9px, 1.6vw, 12px);
+  letter-spacing: 4px; padding: 13px 28px;
+  border: 1px solid #00c8ff; color: #00c8ff; margin-top: 8px;
+}
+.btn:hover { background: rgba(0,200,255,0.1); box-shadow: 0 0 22px rgba(0,200,255,0.28); }
+.btn.orange-btn { border-color: #ff6b35; color: #ff6b35; }
+.btn.orange-btn:hover { background: rgba(255,107,53,0.1); box-shadow: 0 0 22px rgba(255,107,53,0.28); }
+
+/* ── Calc Progress ── */
+.progress-wrap { width: 100%; max-width: 400px; margin: 20px auto; }
+.prog-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: #00c8ff; text-align: left; margin-bottom: 8px; }
+.prog-bar   { width: 100%; height: 2px; background: rgba(0,200,255,0.1); }
+.prog-fill  { height: 100%; background: linear-gradient(90deg, #002030, #00c8ff); transition: width 0.3s ease; }
+
+/* ── Dashboard Cards ── */
+.dashboard {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px; width: 100%; max-width: 500px; margin-top: 14px;
+}
+.dash-card {
+  background: rgba(0,6,16,0.8);
+  border: 1px solid rgba(0,200,255,0.1); padding: 13px 15px; text-align: left;
+}
+.dash-card.red-card    { border-color: rgba(255,45,85,0.24); }
+.dash-card.orange-card { border-color: rgba(255,107,53,0.24); }
+.dash-dl  { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 4px; color: #1e4050; text-transform: uppercase; margin-bottom: 6px; }
+.dash-num { font-family: 'Orbitron', monospace; font-size: clamp(20px, 4.5vw, 30px); font-weight: 700; color: #fff; line-height: 1; }
+.dash-num.cyan  { color: #00e5ff; text-shadow: 0 0 14px rgba(0,229,255,0.4); }
+.dash-num.red-c { color: #ff2d55; text-shadow: 0 0 14px rgba(255,45,85,0.4); }
+.dash-num.orange{ color: #ff6b35; text-shadow: 0 0 14px rgba(255,107,53,0.4); }
+.dash-sub { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 3px; color: #1e4050; margin-top: 4px; }
+
+/* ── Bar Chart ── */
+.bar-chart { width: 100%; max-width: 500px; margin-top: 14px; }
+.bar-row   { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-name  { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 2px; color: #2a5a6a; width: 72px; text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 5px; background: rgba(255,255,255,0.04); }
+.bar-fill  { height: 100%; transition: width 1.5s cubic-bezier(0.22,1,0.36,1); }
+.bar-val   { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #4a7a8a; width: 28px; }
+
+/* ── Wait Scene ── */
+.wait-text {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(54px, 15vw, 130px);
+  font-weight: 900; letter-spacing: 10px;
+  opacity: 0; transition: opacity 0.35s ease;
+  animation: glitch 3.5s infinite;
+}
+.wait-text.show { opacity: 1; }
+
+/* ── Final Counter ── */
+.counter-disp {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(24px, 6vw, 52px);
+  color: #ff2d55; letter-spacing: 6px;
+  text-shadow: 0 0 22px rgba(255,45,85,0.45);
+  animation: pulse 1s infinite;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .input-panel { padding: 16px 18px; }
+  .orbital-wrap { width: 180px; height: 180px; }
+  .dashboard { grid-template-columns: repeat(2, 1fr); }
+}
